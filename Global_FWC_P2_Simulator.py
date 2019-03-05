@@ -110,9 +110,6 @@ class Global_FWC_P2_Simulator:
         dEWMA_Wgt1 = dEWMA_Wgt1 * I
         dEWMA_Wgt2 = dEWMA_Wgt2 * I
         DoE_Queue = []
-        uk_next = np.array([-62, -126])
-        Dk_prev = np.array([0, 0])
-        Kd_prev = np.array([0, 0])
 
         sample_init_VP = []
         sample_init_EP = []
@@ -125,13 +122,26 @@ class Global_FWC_P2_Simulator:
 
         for k in range(1, N + 1):  # range(101) = [0, 1, 2, ..., 100])
             if f is not None:
-                fp = f[k - 1]
+                fp = f[k - 1,0:2]
+                p1_lamda_PLS = f[k - 1, 2:3]
+                fp = p1_lamda_PLS * fp
+                if k == 1:
+                    uk_next = np.array([-54.48, -108.8])  # 계산 공식에 의해
+                    Dk_prev = np.array([-0.067, 26.5])
+                    Kd_prev = np.array([0.16, 0.62])
+                    #Dk_prev = np.array([-0.2, 20])
+                    #Kd_prev = np.array([-0.02, 1])
             else:
                 fp = None
+                if k == 1:
+                    uk_next = np.array([0, 0])  # 계산 공식에 의해
+                    Dk_prev = np.array([0, 0])
+                    Kd_prev = np.array([0, 0])
+
             idx_start, idx_end, result = self.sampling(k, uk_next, vp_next, ep_next, fp, True)
             npResult = np.array(result)
 
-            # ================================== initVM-R2R Control =====================================
+            #================================== initVM-R2R Control =====================================
             uk = npResult[0:2]
             yk = npResult[idx_start:idx_end]
 
@@ -140,6 +150,11 @@ class Global_FWC_P2_Simulator:
 
             Kd_prev = Kd
             Dk_prev = Dk
+
+            if k <= 10:
+                print("doe Kd_prev : ", Kd_prev)
+                print("doe Dk_prev : ", Dk_prev)
+                print("doe uk_next : ", uk_next)
 
             if isR2R == True:
                 uk_next = (self.Tgt - Dk - Kd).dot(np.linalg.inv(self.A))
@@ -157,12 +172,22 @@ class Global_FWC_P2_Simulator:
 
         plsWindow = []
 
+        #np.savetxt("output/npPlsWindow1.csv", npPlsWindow, delimiter=",", fmt="%s")
+
+        if f is not None:
+            for k in range(0, N):  # range(101) = [0, 1, 2, ..., 100])
+                p1_lamda_PLS = f[k,2:3]
+                if (k + 1) % M != 0:
+                    npPlsWindow[k, idx_start - 2:idx_start] = p1_lamda_PLS * npPlsWindow[k, idx_start - 2:idx_start]
+
         for z in np.arange(0, Z):
             npPlsWindow[z * M:(z + 1) * M - 1, 0:idx_start] = lamda_PLS * npPlsWindow[z * M:(z + 1) * M - 1, 0:idx_start]
             npPlsWindow[z * M:(z + 1) * M - 1, idx_start:idx_end] = lamda_PLS * (npPlsWindow[z * M:(z + 1) * M - 1, idx_start:idx_end])
 
         for i in range(len(npPlsWindow)):
             plsWindow.append(npPlsWindow[i])
+
+        #np.savetxt("output/npPlsWindow2.csv", npPlsWindow, delimiter=",", fmt="%s")
 
         npDoE_Queue = np.array(plsWindow)
         DoE_Mean = np.mean(npDoE_Queue, axis=0)
@@ -177,10 +202,15 @@ class Global_FWC_P2_Simulator:
         y_pred = pls.predict(V0) + DoE_Mean[idx_start:idx_end]
         y_act = npDoE_Queue[:, idx_start:idx_end]
 
-        # print("Init VM Mean squared error: %.3f" % metrics.mean_squared_error(y_act, y_pred))
-        # print("Init VM r2 score: %.3f" % metrics.r2_score(y_act, y_pred))
+        print("Init VM Mean squared error: %.3f" % metrics.mean_squared_error(y_act, y_pred))
+        print("Init VM r2 score: %.3f" % metrics.r2_score(y_act, y_pred))
+
+
         self.setDoE_Mean(DoE_Mean)
         self.setPlsWindow(plsWindow)
+        self.plt_show2(N, y_act[:, 1:2])
+        # self.plt_show1(N, y_pred[:, 1:2])
+
 
     def VM_Run(self, lamda_PLS, dEWMA_Wgt1, dEWMA_Wgt2, Z, M, f, isR2R):
         N = Z * M
@@ -196,13 +226,13 @@ class Global_FWC_P2_Simulator:
         meanYz = DoE_Mean[idx_start:idx_end]
         yk = np.array([0, 0])
 
-        Dk_prev = np.array([0, 0])
-        Kd_prev = np.array([0, 0])
+        Dk_prev = np.array([-0.067, 26.5])     #10번째 run시 값
+        Kd_prev = np.array([0.16, 0.62])   #10번째 run시 값
 
-        Dk = np.array([0, 0])
-        Kd = np.array([0, 0])
+        # Dk = np.array([0, 0])
+        # Kd = np.array([0, 0])
 
-        uk_next = np.array([-62, -126])
+        uk_next = np.array([-54.48, -108.8]) #계산 공식에 의해
 
         M_Queue = []
         ez_Queue = []
@@ -225,9 +255,14 @@ class Global_FWC_P2_Simulator:
         for z in np.arange(0, Z):
             for k in np.arange(z * M + 1, ((z + 1) * M) + 1):
                 if f is not None:
-                    fp = f[k - 1]
+                    fp = f[k - 1, 0:2]
                 else:
                     fp = None
+                    if k == 1:
+                        uk_next = np.array([0, 0])  # 계산 공식에 의해
+                        Dk_prev = np.array([0, 0])
+                        Kd_prev = np.array([0, 0])
+
                 # y값의 시작과 끝 정보, 전체 값 정보
                 idx_start, idx_end, result = self.sampling(k, uk_next, vp_next, ep_next, fp, False)
                 psiK = result[0:idx_start]  # 파라미터 값들
@@ -243,6 +278,7 @@ class Global_FWC_P2_Simulator:
                     yk = rows[idx_end:idx_end + 2]
                 else:
                     yk = rows[idx_start:idx_end]    #실제 값
+                    e1 = np.absolute(rows[idx_start + 1:idx_end] - rows[idx_end + 1:idx_end + 2])
                 uk = psiK[0:2]
 
                 Dk = (yk - uk.dot(self.A)).dot(dEWMA_Wgt1) + Dk_prev.dot(I - dEWMA_Wgt1)
@@ -276,16 +312,37 @@ class Global_FWC_P2_Simulator:
 
             for i in range(M):  #VM_Output 구한다. lamda_pls 가중치를 반영하지 않는다.
                 if i == M - 1:
-                    temp = npM_Queue[i:i + 1, idx_end:idx_end + 2]
+                    temp = npM_Queue[i:i + 1, idx_start:idx_end]
                 else:
-                    temp = npM_Queue[i:i+1, idx_start:idx_end]
+                    temp = npM_Queue[i:i + 1, idx_end:idx_end + 2]
                 VM_Output.append(np.array([temp[0, 0], temp[0, 1]]))
+
+            # emax = 5
+            # lamda_PLS = 1 - e1/emax
+            # if lamda_PLS <= 0:
+            #     lamda_PLS = 0.1
+            #
+            # print("e1 : ", e1, "P2 lamda_PLS : ", lamda_PLS)
+            if z == 0:
+                print("vm Kd_prev : ", Kd_prev)
+                print("vm Dk_prev : ", Dk_prev)
+                print("doe uk_next : ", uk_next)
+
+            if f is not None:
+                p1_lamda_PLS = f[k - 1, 2:3]
+                npM_Queue[0:M - 1, idx_start - 2:idx_start] = p1_lamda_PLS * npM_Queue[0:M - 1, idx_start - 2:idx_start]
+
+            #np.savetxt("output/npM_Queue2.csv", npM_Queue, delimiter=",", fmt="%s")
 
             npM_Queue[0:M - 1, 0:idx_start] = lamda_PLS * npM_Queue[0:M - 1, 0:idx_start]
             # idx_start:idx_end는 실제 값에 VM 값들의 조정을 통해 모델을 위해 VM의 정보를 업데이트 한다.
             npM_Queue[0:M - 1, idx_start:idx_end] = lamda_PLS * (npM_Queue[0:M - 1, idx_end:idx_end + 2] + 0.5 * ez)
             #npM_Queue[0:M - 1, idx_start:idx_end] = lamda_PLS * (npM_Queue[0:M - 1, idx_end:idx_end + 2])  # 0.5 * ez 반영안할시
             npM_Queue = npM_Queue[:, 0:idx_end] #여기에는 VM + Actual 실제값들이 저장되어 있다.
+
+            # for i in range(M):  #VM_Output 구한다. lamda_pls 가중치를 반영하지 않는다.
+            #     temp = npM_Queue[i:i + 1, idx_start:idx_end]
+            #     VM_Output.append(np.array([temp[0, 0], temp[0, 1]]))
 
             for i in range(M):
                 plsWindow.append(npM_Queue[i])  #전체 Queue에 넣는다.
@@ -301,6 +358,7 @@ class Global_FWC_P2_Simulator:
             self.pls_update(V, Y)
             ez = M_Queue[M - 1][idx_start:idx_end] - M_Queue[M - 1][idx_end:idx_end + 2]
             ez_Queue.append(ez)
+            # print("ez : ", ez)
 
             del M_Queue[0:M]
 
