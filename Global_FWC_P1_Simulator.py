@@ -216,6 +216,7 @@ class Global_FWC_P1_Simulator:
                     yk = rows[idx_end:idx_end + 2]
                 else:
                     yk = rows[idx_start:idx_end]
+                    e1 = np.absolute(rows[idx_start + 1:idx_end] - rows[idx_end + 1:idx_end + 2])
                 uk = psiK[0:2]
 
                 Dk = (yk - uk.dot(self.A)).dot(dEWMA_Wgt1) + Dk_prev.dot(I - dEWMA_Wgt1)
@@ -243,17 +244,29 @@ class Global_FWC_P1_Simulator:
                 ez = 0
             npM_Queue = np.array(M_Queue)
 
+            emax = 3
+            p1_lamda_PLS = 1 - e1 / emax
+            if p1_lamda_PLS <= 0:
+                p1_lamda_PLS = 0.1
+            # print("머야 lamda_PLS : ", lamda_PLS)
+
+            print("e1 : ", e1, "P1 lamda_PLS : ", p1_lamda_PLS)
+
             for i in range(M):  #VM_Output 구한다. lamda_pls 가중치를 반영하지 않는다.
                 if i == M - 1:
                     temp = npM_Queue[i:i + 1, idx_end:idx_end + 2]
                 else:
                     temp = npM_Queue[i:i+1, idx_start:idx_end]
-                VM_Output.append(np.array([temp[0, 0], temp[0, 1]]))
+                VM_Output.append(np.array([temp[0, 0], temp[0, 1], p1_lamda_PLS]))
 
             npM_Queue[0:M - 1, 0:idx_start] = lamda_PLS * npM_Queue[0:M - 1, 0:idx_start]
             npM_Queue[0:M - 1, idx_start:idx_end] = lamda_PLS * (npM_Queue[0:M - 1, idx_end:idx_end + 2] + 0.5 * ez)
             #npM_Queue[0:M - 1, idx_start:idx_end] = lamda_PLS * (npM_Queue[0:M - 1, idx_end:idx_end + 2])   #0.5 * ez 반영안할시
             npM_Queue = npM_Queue[:, 0:idx_end]
+
+            # for i in range(M):  #VM_Output 구한다. lamda_pls 가중치를 반영하지 않는다.
+            #     temp = npM_Queue[i:i + 1, idx_start:idx_end]
+            #     VM_Output.append(np.array([temp[0, 0], temp[0, 1]]))
 
             for i in range(M):
                 plsWindow.append(npM_Queue[i])
@@ -281,5 +294,5 @@ class Global_FWC_P1_Simulator:
             self.plt_show2(N, y_act[:, 0:1])
         else:
             self.plt_show1(N, y_act[:, 0:1])
-        #VM_Output = y_pred
+        #VM_Output = y_predZ
         return VM_Output
