@@ -42,24 +42,37 @@ def main():
     # VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
 
     max_i = 0
-    max_value = 10000000
-    min_value = 0
+    max_value = 0
+    #min_value = 0
+
+    st_count = 0
 
     term = 1
-    for i in range(term, term + 100):
+    for i in range(term, term + 1000):
         print("index : ", i)
         fwc_p2_pre_r2r = Global_FWC_P3_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, i)  # 10, 200000, 2
-        fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=10, M=10, f=None, isR2R=True)
-        VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=None, isR2R=True)
-        cri = np.max(np.absolute(VM_Output[:,1]), axis=0)
-        print("cri : ", cri)
+        fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, f=None, isR2R=True)
+        VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=20, M=10, f=None, isR2R=True)
+        t = np.absolute(VM_Output[:, 1])
+        max_t = np.max(t, axis=0)
+        print("max_t: ", max_t)
 
-        if cri > min_value:
+        if max_t > max_value:
             max_i = i
-            min_value = cri
+            max_value = max_t
+
+        temp = t[t > 1.1]
+        st = temp[temp <= 2.5]
+        length = len(st)
+        if (length > st_count) and (np.max(st) == max_t):
+            st_i = i
+            st_count = length
+
+    print("st_i = ", st_i)
+    print("st_value = ", st_count)
 
     print("max_i = ", max_i)
-    print("max_value = ", min_value)
+    print("max_value = ", max_value)
 
 if __name__ == "__main__":
     main()
