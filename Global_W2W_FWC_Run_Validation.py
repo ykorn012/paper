@@ -32,10 +32,8 @@ F_p2 = np.array([[0.5, 0], [0, 0.5]])
 # np.max(test[:,1], axis=0)
 
 def main():
-
-
+    master = np.loadtxt('output/vm_output1.csv', delimiter=',')
     p1_r2r_VMOutput = np.loadtxt('output/vm_output2.csv', delimiter=',')
-    temp = np.loadtxt('output/vm_output1.csv', delimiter=',')
 
     # fwc_p2_pre_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, 1000000000)
     # fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
@@ -43,23 +41,37 @@ def main():
 
     max_i = 0
     max_value = 10000000
-    min_value = 10000000
+    min_value = 0
 
-    term = 1000000000
-    for i in range(term, term + 100):
+    st_count = 0
+    st_i = 0
+
+    term = 100000000
+    for i in range(term, term + 10):
         print("index : ", i)
-        fwc_p2_pre_r2r = Global_FWC_P3_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, i)  # 10, 200000, 2
-        fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=10, M=10, f=temp, isR2R=True)
-        VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
-        cri = np.max(np.absolute(VM_Output[:,1]), axis=0)
-        print("cri : ", cri)
+        fwc_p2_pre_r2r = Global_FWC_P3_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, 100000000)  # 10, 200000, 2
+        fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, f=master, isR2R=True)
+        VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
+        t = np.absolute(VM_Output[:, 1])
+        max_t = np.max(t)
+        print("max_t: ", max_t)
 
-        if cri < min_value:
-            min_i = i
-            min_value = cri
+        if max_t < max_value:
+            max_i = i
+            max_value = max_t
 
-    print("min_i = ", min_i)
-    print("min_value = ", min_value)
+        temp = t[t < 1.1]
+        st = temp[temp <= 0.7]
+        length = len(st)
+        if (length > st_count) and (np.max(temp) == max_t):
+            st_i = i
+            st_count = length
+
+    print("st_i = ", st_i)
+    print("st_value = ", st_count)
+
+    print("max_i = ", max_i)
+    print("max_value = ", max_value)
 
 if __name__ == "__main__":
     main()
