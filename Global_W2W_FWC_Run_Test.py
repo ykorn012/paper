@@ -30,29 +30,30 @@ F_p2 = np.array([[0.5, 0], [0, 0.5]])
 
 def main():
     # fwc_p1_r2r = Global_FWC_P1_Simulator(Tgt_p1, A_p1, d_p1, C_p1, 100000) #10000003
-    # fwc_p1_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=10, M=10, isR2R=True)
-    # p1_r2r_VMOutput = fwc_p1_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, isR2R=True)
+    # fwc_p1_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, isR2R=True)
+    # p1_r2r_VMOutput = fwc_p1_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=20, M=10, isR2R=True)
     #
     # np.savetxt("output/vm_output2.csv", p1_r2r_VMOutput, delimiter=",", fmt="%.8f")
     #
     # fwc_p1_l2l = Global_FWC_P1_Simulator(Tgt_p1, A_p1, d_p1, C_p1, 100000)
-    # fwc_p1_l2l.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=10, M=10, isR2R=False)
-    # fwc_p1_l2l.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, isR2R=False)
+    # fwc_p1_l2l.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, isR2R=False)
+    # fwc_p1_l2l.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=20, M=10, isR2R=False)
 
     temp = np.loadtxt('output/vm_output1.csv', delimiter=',')
 
     p1_r2r_VMOutput = np.loadtxt('output/vm_output2.csv', delimiter=',')
 
-    # print("===============================================")
-    #fwc_p2_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, None, 74)
-    #fwc_p2_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=10, M=10, f=None, isR2R=True)
-    # fwc_p2_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=None, isR2R=True)
-    #
-    # print("===============================================")
+    print("===============================================")
+    fwc_p2_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, None, 210) #73, 2399, 4092
+    fwc_p2_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, f=None, isR2R=True)
+    fwc_p2_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=20, M=10, f=None, isR2R=True)
 
-    fwc_p2_pre_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, 1000000075)
-    fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=10, M=10, f=temp, isR2R=True)
-    # VM_output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
+    print("===============================================")
+
+    fwc_p2_pre_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, 100000)
+    fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, f=temp, isR2R=True)
+    VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
+
     # VM_output = np.array(VM_output)
     # cri = np.max(np.absolute(VM_output[:, 1]), axis=0)
     # print("cri : ", cri)
