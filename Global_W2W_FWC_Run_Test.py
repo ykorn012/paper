@@ -53,6 +53,11 @@ def main():
     fwc_p2_pre_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, 100000)
     fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.75, dEWMA_Wgt2=0.35, Z=10, M=10, f=temp, isR2R=True)
     VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.75, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
+    
+    
+    fwc_p2_pre_r2r = Global_FWC_P2_Simulator(Tgt_p2, A_p2, d_p2, C_p2, F_p2, 100000000)
+    fwc_p2_pre_r2r.DoE_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.35, Z=10, M=10, f=temp, isR2R=True)
+    VM_Output = fwc_p2_pre_r2r.VM_Run(lamda_PLS=1, dEWMA_Wgt1=0.55, dEWMA_Wgt2=0.35, Z=20, M=10, f=p1_r2r_VMOutput, isR2R=True)
 
     # VM_output = np.array(VM_output)
     # cri = np.max(np.absolute(VM_output[:, 1]), axis=0)
