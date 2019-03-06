@@ -119,6 +119,7 @@ class Global_FWC_P2_Simulator:
             sample_init_EP.append(self.sampling_ep())
         vp_next = sample_init_VP[0]
         ep_next = sample_init_EP[0]
+        ep_next = np.array([0, 0])
 
         for k in range(1, N + 1):  # range(101) = [0, 1, 2, ..., 100])
             if f is not None:
@@ -126,11 +127,12 @@ class Global_FWC_P2_Simulator:
                 p1_lamda_PLS = f[k - 1, 2:3]
                 fp = p1_lamda_PLS * fp
                 if k == 1:
-                    uk_next = np.array([-54.48, -108.8])  # 계산 공식에 의해
-                    Dk_prev = np.array([-0.067, 26.5])
-                    Kd_prev = np.array([0.16, 0.62])
+                    uk_next = np.array([-51, -102])  # 계산 공식에 의해
+                    Dk_prev = np.array([-0.24, 26.4])
+                    Kd_prev = np.array([0.024, 0.07])
                     #Dk_prev = np.array([-0.2, 20])
                     #Kd_prev = np.array([-0.02, 1])
+
             else:
                 fp = None
                 if k == 1:
@@ -147,6 +149,8 @@ class Global_FWC_P2_Simulator:
 
             Dk = (yk - uk.dot(self.A)).dot(dEWMA_Wgt1) + Dk_prev.dot(I - dEWMA_Wgt1)
             Kd = (yk - uk.dot(self.A) - Dk_prev).dot(dEWMA_Wgt2) + Kd_prev.dot(I - dEWMA_Wgt2)
+            # Dk = (yk - uk.dot(self.A) - fp.dot(self.F)).dot(dEWMA_Wgt1) + Dk_prev.dot(I - dEWMA_Wgt1)
+            # Kd = (yk - uk.dot(self.A) - fp.dot(self.F) - Dk_prev).dot(dEWMA_Wgt2) + Kd_prev.dot(I - dEWMA_Wgt2)
 
             Kd_prev = Kd
             Dk_prev = Dk
@@ -165,6 +169,7 @@ class Global_FWC_P2_Simulator:
                     uk_next = (self.Tgt - Dk - Kd).dot(np.linalg.inv(self.A))
                     vp_next = sample_init_VP[k]
             ep_next = sample_init_EP[k]
+            ep_next = np.array([0, 0])
             DoE_Queue.append(result)
 
         initplsWindow = DoE_Queue.copy()
@@ -176,7 +181,7 @@ class Global_FWC_P2_Simulator:
 
         if f is not None:
             for k in range(0, N):  # range(101) = [0, 1, 2, ..., 100])
-                p1_lamda_PLS = f[k,2:3]
+                p1_lamda_PLS = f[k, 2:3]
                 if (k + 1) % M != 0:
                     npPlsWindow[k, idx_start - 2:idx_start] = p1_lamda_PLS * npPlsWindow[k, idx_start - 2:idx_start]
 
@@ -208,7 +213,7 @@ class Global_FWC_P2_Simulator:
 
         self.setDoE_Mean(DoE_Mean)
         self.setPlsWindow(plsWindow)
-        self.plt_show2(N, y_act[:, 1:2])
+        # self.plt_show2(N, y_act[:, 1:2])
         # self.plt_show1(N, y_pred[:, 1:2])
 
 
@@ -226,13 +231,13 @@ class Global_FWC_P2_Simulator:
         meanYz = DoE_Mean[idx_start:idx_end]
         yk = np.array([0, 0])
 
-        Dk_prev = np.array([-0.067, 26.5])     #10번째 run시 값
-        Kd_prev = np.array([0.16, 0.62])   #10번째 run시 값
+        Dk_prev = np.array([-0.24, 26.4])     #10번째 run시 값
+        Kd_prev = np.array([0.024, 0.07])   #10번째 run시 값
 
         # Dk = np.array([0, 0])
         # Kd = np.array([0, 0])
 
-        uk_next = np.array([-54.48, -108.8]) #계산 공식에 의해
+        uk_next = np.array([-51, -102]) #계산 공식에 의해
 
         M_Queue = []
         ez_Queue = []
