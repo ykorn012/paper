@@ -109,6 +109,7 @@ class Global_FWC_P1_Simulator:
 
         vp_next = self.sampling_vp()
         ep_next = self.sampling_ep()
+        ep_next = np.array([0, 0])
 
         for k in range(1, N + 1):      # range(101) = [0, 1, 2, ..., 100])
             idx_start, idx_end, result = self.sampling(k, uk_next, vp_next, ep_next, True)
@@ -133,6 +134,7 @@ class Global_FWC_P1_Simulator:
                     uk_next = (self.Tgt - Dk - Kd).dot(np.linalg.inv(self.A))
                     vp_next = self.sampling_vp()
             ep_next = self.sampling_ep()
+            ep_next = np.array([0, 0])
             DoE_Queue.append(result)
 
         initplsWindow = DoE_Queue.copy()
@@ -244,7 +246,7 @@ class Global_FWC_P1_Simulator:
                 ez = 0
             npM_Queue = np.array(M_Queue)
 
-            emax = 3
+            emax = 5
             p1_lamda_PLS = 1 - e1 / emax
             if p1_lamda_PLS <= 0:
                 p1_lamda_PLS = 0.1
