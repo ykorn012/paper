@@ -256,10 +256,10 @@ class Global_FWC_P1_Simulator:
 
             for i in range(M):  #VM_Output 구한다. lamda_pls 가중치를 반영하지 않는다.
                 if i == M - 1:
-                    temp = npM_Queue[i:i + 1, idx_end:idx_end + 2]
+                    temp = npM_Queue[i:i + 1, idx_start:idx_end]
                 else:
-                    temp = npM_Queue[i:i+1, idx_start:idx_end]
-                VM_Output.append(np.array([temp[0, 0], temp[0, 1], p1_lamda_PLS]))
+                    temp = npM_Queue[i:i + 1, idx_end:idx_end + 2]
+                VM_Output.append(np.array([temp[0, 0], temp[0, 1]]))
 
             npM_Queue[0:M - 1, 0:idx_start] = lamda_PLS * npM_Queue[0:M - 1, 0:idx_start]
             npM_Queue[0:M - 1, idx_start:idx_end] = lamda_PLS * (npM_Queue[0:M - 1, idx_end:idx_end + 2] + 0.5 * ez)
